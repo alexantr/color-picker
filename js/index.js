@@ -17,7 +17,7 @@ alexantr.colorPicker = {
             _this._withHash = !!withHash;
         }
 
-        var hslValues = [0, 100, 50];
+        var hslValues = [0, 1.0, 0.5];
 
         var inputHex = _this._input.value;
         if (inputHex) {
@@ -31,31 +31,31 @@ alexantr.colorPicker = {
 
         var $hue = _this._container.getElementsByClassName('acp-hue')[0];
         noUiSlider.create($hue, {
-            start: [hslValues[0]],
+            start: hslValues[0],
             step: 1,
             range: {
-                'min': [0],
-                'max': [360]
+                'min': 0,
+                'max': 360
             }
         });
 
         var $saturation = _this._container.getElementsByClassName('acp-saturation')[0];
         noUiSlider.create($saturation, {
-            start: [hslValues[1]],
+            start: _this._float2value(hslValues[1]),
             step: 1,
             range: {
-                'min': [0],
-                'max': [100]
+                'min': 0,
+                'max': 100000
             }
         });
 
         var $lightness = _this._container.getElementsByClassName('acp-lightness')[0];
         noUiSlider.create($lightness, {
-            start: [hslValues[2]],
+            start: _this._float2value(hslValues[2]),
             step: 1,
             range: {
-                'min': [0],
-                'max': [100]
+                'min': 0,
+                'max': 100000
             }
         });
 
@@ -80,8 +80,8 @@ alexantr.colorPicker = {
                     var newHsl = _this._rgb2hsl(newRGB[0], newRGB[1], newRGB[2]);
                     _this._updateInput = false;
                     $hue.noUiSlider.set(newHsl[0]);
-                    $saturation.noUiSlider.set(newHsl[1]);
-                    $lightness.noUiSlider.set(newHsl[2]);
+                    $saturation.noUiSlider.set(_this._float2value(newHsl[1]));
+                    $lightness.noUiSlider.set(_this._float2value(newHsl[2]));
                     _this._updateInput = true;
                 }
             }
@@ -115,13 +115,14 @@ alexantr.colorPicker = {
         s = parseInt(s) || 0;
         l = parseInt(l) || 0;
 
-        $hsl.innerHTML = 'H: <strong>' + h + '</strong>, S: <strong>' + s + '</strong>, L: <strong>' + l + '</strong>';
+        s = this._value2float(s);
+        l = this._value2float(l);
 
         var hexMinS = this._hsl2rgb(h, 0, l, true);
-        var hexMaxS = this._hsl2rgb(h, 100, l, true);
+        var hexMaxS = this._hsl2rgb(h, 1, l, true);
         $s.getElementsByClassName('noUi-connects')[0].style.background = 'linear-gradient(to right, #' + hexMinS + ', #' + hexMaxS + ')';
 
-        var hexL = this._hsl2rgb(h, s, 50, true);
+        var hexL = this._hsl2rgb(h, s, 0.5, true);
         $l.getElementsByClassName('noUi-connects')[0].style.background = 'linear-gradient(to right, #000, #' + hexL + ', #fff)';
 
         var hex = this._hsl2rgb(h, s, l, true);
@@ -132,25 +133,21 @@ alexantr.colorPicker = {
 
         $preview.style.backgroundColor = '#' + hex;
 
+        $hsl.innerHTML = 'H: <strong>' + h + '</strong>, S: <strong>' + (Math.round(s * 1000) / 1000) + '</strong>, L: <strong>' + (Math.round(l * 1000) / 1000) + '</strong>';
+
         var rgb = this._hsl2rgb(h, s, l);
         $rgb.innerHTML = 'R: <strong>' + rgb[0] + '</strong>, G: <strong>' + rgb[1] + '</strong>, B: <strong>' + rgb[2] + '</strong>';
     },
     _hsl2rgb: function (h, s, l, toHex) {
         toHex = !!toHex;
 
-        // resolve degrees to 0 - 359 range
-        h = this._cycle(h);
+        // convert to 0 to 1
+        h = (h % 360) / 360;
 
         // enforce constraints
-        s = this._min(this._max(s, 100), 0);
-        l = this._min(this._max(l, 100), 0);
-
-        // convert to 0 to 1
-        h /= 360;
-        s /= 100;
-        l /= 100;
-
-        // hsl -> rgb
+        h = this._range(h, 0, 1);
+        s = this._range(s, 0, 1);
+        l = this._range(l, 0, 1);
 
         var r, g, b;
 
@@ -166,9 +163,9 @@ alexantr.colorPicker = {
         }
 
         var rgb = [
-            this._min(this._max(Math.round(r * 255), 255), 0),
-            this._min(this._max(Math.round(g * 255), 255), 0),
-            this._min(this._max(Math.round(b * 255), 255), 0)
+            this._range(Math.round(r * 255), 0, 255),
+            this._range(Math.round(g * 255), 0, 255),
+            this._range(Math.round(b * 255), 0, 255)
         ];
 
         if (!toHex) {
@@ -210,9 +207,9 @@ alexantr.colorPicker = {
         }
 
         return [
-            this._min(this._max(Math.round(h), 360), 0),
-            this._min(this._max(Math.round(s * 100), 100), 0),
-            this._min(this._max(Math.round(l * 100), 100), 0)
+            this._range(Math.round(h), 0, 359),
+            this._range(s, 0, 1),
+            this._range(l, 0, 1)
         ];
     },
     _hue2rgb: function (p, q, t) {
@@ -236,28 +233,19 @@ alexantr.colorPicker = {
         var g = (num >> 8) & 255;
         var b = num & 255;
         return [
-            this._min(this._max(Math.round(r), 255), 0),
-            this._min(this._max(Math.round(g), 255), 0),
-            this._min(this._max(Math.round(b), 255), 0)
+            this._range(Math.round(r), 0, 255),
+            this._range(Math.round(g), 0, 255),
+            this._range(Math.round(b), 0, 255)
         ]
     },
-    _max: function (val, n) {
-        return (val > n) ? n : val;
+    _range: function (val, min, max) {
+        val = (val > max) ? max : val;
+        return (val < min) ? min : val;
     },
-    _min: function (val, n) {
-        return (val < n) ? n : val;
+    _float2value: function (val) {
+        return this._range(Math.round(val * 100000), 0, 100000);
     },
-    _cycle: function (val) {
-        // for safety:
-        val = this._max(val, 1e7);
-        val = this._min(val, -1e7);
-        // cycle value:
-        while (val < 0) {
-            val += 360;
-        }
-        while (val > 359) {
-            val -= 360;
-        }
-        return val;
+    _value2float: function (val) {
+        return this._range(val / 100000, 0, 1);
     }
 };
