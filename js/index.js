@@ -71,6 +71,24 @@ alexantr.colorPicker = {
 
         _this._updateInput = true;
         _this._refreshColor();
+
+        var onInput = function () {
+            var val = this.value;
+            if (val) {
+                var newRGB = _this._hex2rgb(val);
+                if (newRGB !== false) {
+                    var newHsl = _this._rgb2hsl(newRGB[0], newRGB[1], newRGB[2]);
+                    _this._updateInput = false;
+                    $hue.noUiSlider.set(newHsl[0]);
+                    $saturation.noUiSlider.set(newHsl[1]);
+                    $lightness.noUiSlider.set(newHsl[2]);
+                    _this._updateInput = true;
+                }
+            }
+        };
+
+        _this._input.oninput = onInput;
+        _this._input.onchange = onInput;
     },
     _tpl: function () {
         return '<div class="acp-slider acp-hue"></div>' +
