@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Color Picker</title>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/nouislider.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+        }
+    </style>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <input id="hex" value="#cfc">
+
+    <div id="cp"></div>
+
+</div>
+
+<script src="js/nouislider.min.js"></script>
+<script src="js/index.js"></script>
+
+<script>
+    alexantr.colorPicker.init('hex', 'cp');
+</script>
+
+</body>
+</html>
