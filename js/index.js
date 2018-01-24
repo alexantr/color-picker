@@ -31,11 +31,11 @@ alexantr.colorPicker = {
 
         var $hue = _this._container.getElementsByClassName('acp-hue')[0];
         noUiSlider.create($hue, {
-            start: hslValues[0],
+            start: _this._float2value(hslValues[0]),
             step: 1,
             range: {
                 'min': 0,
-                'max': 360
+                'max': 100000
             }
         });
 
@@ -79,7 +79,7 @@ alexantr.colorPicker = {
                 if (newRGB !== false) {
                     var newHsl = _this._rgb2hsl(newRGB[0], newRGB[1], newRGB[2]);
                     _this._updateInput = false;
-                    $hue.noUiSlider.set(newHsl[0]);
+                    $hue.noUiSlider.set(_this._float2value(newHsl[0]));
                     $saturation.noUiSlider.set(_this._float2value(newHsl[1]));
                     $lightness.noUiSlider.set(_this._float2value(newHsl[2]));
                     _this._updateInput = true;
@@ -115,6 +115,11 @@ alexantr.colorPicker = {
         s = parseInt(s) || 0;
         l = parseInt(l) || 0;
 
+        if (h === 100000) {
+            h = 0;
+        }
+
+        h = this._value2float(h);
         s = this._value2float(s);
         l = this._value2float(l);
 
@@ -133,16 +138,13 @@ alexantr.colorPicker = {
 
         $preview.style.backgroundColor = '#' + hex;
 
-        $hsl.innerHTML = 'H: <strong>' + h + '</strong>, S: <strong>' + (Math.round(s * 1000) / 1000) + '</strong>, L: <strong>' + (Math.round(l * 1000) / 1000) + '</strong>';
+        $hsl.innerHTML = 'H: <strong>' + (Math.round(h * 36000) / 100) + '</strong>, S: <strong>' + (Math.round(s * 1000) / 1000) + '</strong>, L: <strong>' + (Math.round(l * 1000) / 1000) + '</strong>';
 
         var rgb = this._hsl2rgb(h, s, l);
         $rgb.innerHTML = 'R: <strong>' + rgb[0] + '</strong>, G: <strong>' + rgb[1] + '</strong>, B: <strong>' + rgb[2] + '</strong>';
     },
     _hsl2rgb: function (h, s, l, toHex) {
         toHex = !!toHex;
-
-        // convert to 0 to 1
-        h = (h % 360) / 360;
 
         // enforce constraints
         h = this._range(h, 0, 1);
@@ -203,11 +205,11 @@ alexantr.colorPicker = {
                     break;
             }
 
-            h *= 60;
+            h /= 6;
         }
 
         return [
-            this._range(Math.round(h), 0, 359),
+            this._range(h, 0, 99999 / 100000),
             this._range(s, 0, 1),
             this._range(l, 0, 1)
         ];
