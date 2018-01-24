@@ -6,11 +6,16 @@ alexantr.colorPicker = {
     _input: null,
     _container: null,
     _updateInput: false,
-    init: function (inputId, containerId) {
+    _withHash: true,
+    init: function (inputId, containerId, withHash) {
         var _this = this;
 
         _this._input = document.getElementById(inputId);
         _this._container = document.getElementById(containerId);
+
+        if (withHash !== undefined) {
+            _this._withHash = !!withHash;
+        }
 
         var hslValues = [0, 100, 50];
 
@@ -96,18 +101,18 @@ alexantr.colorPicker = {
 
         var hexMinS = this._hsl2rgb(h, 0, l, true);
         var hexMaxS = this._hsl2rgb(h, 100, l, true);
-        $s.getElementsByClassName('noUi-connects')[0].style.background = 'linear-gradient(to right, ' + hexMinS + ', ' + hexMaxS + ')';
+        $s.getElementsByClassName('noUi-connects')[0].style.background = 'linear-gradient(to right, #' + hexMinS + ', #' + hexMaxS + ')';
 
         var hexL = this._hsl2rgb(h, s, 50, true);
-        $l.getElementsByClassName('noUi-connects')[0].style.background = 'linear-gradient(to right, #000, ' + hexL + ', #fff)';
+        $l.getElementsByClassName('noUi-connects')[0].style.background = 'linear-gradient(to right, #000, #' + hexL + ', #fff)';
 
         var hex = this._hsl2rgb(h, s, l, true);
 
         if (toInput && this._updateInput) {
-            this._input.value = hex;
+            this._input.value = (this._withHash ? '#' : '') + hex;
         }
 
-        $preview.style.backgroundColor = hex;
+        $preview.style.backgroundColor = '#' + hex;
 
         var rgb = this._hsl2rgb(h, s, l);
         $rgb.innerHTML = 'R: <strong>' + rgb[0] + '</strong>, G: <strong>' + rgb[1] + '</strong>, B: <strong>' + rgb[2] + '</strong>';
@@ -152,7 +157,7 @@ alexantr.colorPicker = {
             return rgb;
         }
 
-        return '#' + rgb.map(function (n) {
+        return rgb.map(function (n) {
             return (256 + n).toString(16).substr(-2)
         }).join('');
     },
